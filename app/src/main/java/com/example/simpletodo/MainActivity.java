@@ -55,7 +55,7 @@ public class MainActivity extends AppCompatActivity {
         // Construct adapter and pass items in
         itemsAdapter = new ItemsAdapter(items, onLongClickListener);
         rvItems.setAdapter(itemsAdapter);
-        // Place UI components vertically
+        // Place UI components vertically by default
         rvItems.setLayoutManager(new LinearLayoutManager(this));
 
         // Be notified everytime user clicks on button

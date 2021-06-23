@@ -26,9 +26,9 @@ public class ItemsAdapter extends RecyclerView.Adapter<ItemsAdapter.ViewHolder>{
         this.longClickListener = longClickListener;
     }
 
-    // Creates each view
     @NonNull
     @Override
+    // Creates each view
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         // Use layout inflator to inflate a view
         View todoView = LayoutInflater.from(parent.getContext()).inflate(android.R.layout.simple_list_item_1, parent, false);
