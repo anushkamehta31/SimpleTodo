@@ -1,8 +1,12 @@
 package com.example.simpletodo;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -25,6 +29,11 @@ public class MainActivity extends AppCompatActivity {
     List<String> items;
     ItemsAdapter itemsAdapter;
 
+    // Create keys to reference data we are receiving
+    public static final String KEY_ITEM_TEXT = "item_text";
+    public static final String KEY_ITEM_POSITION = "item_position";
+    public static final int EDIT_TEXT_CODE = 20;
+
     // onCreate called by Android system and informs developer that MainActivity was created (but not visible to user)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,7 +44,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Get a reference of each view (component of UI) in our Java file
         btnAdd = findViewById(R.id.btnAdd);
-        etItem = findViewById(R.id.etItem);
+        etItem = findViewById(R.id.edtItem);
         rvItems = findViewById(R.id.rvItems);
 
         loadItems();
@@ -52,8 +61,23 @@ public class MainActivity extends AppCompatActivity {
             }
         };
 
+        // Construct onClick listener
+        ItemsAdapter.OnClickListener onClickListener = new ItemsAdapter.OnClickListener() {
+            @Override
+            public void onItemClicked(int position) {
+                Log.d("MainActivity", "Single click at position " + position);
+                // Create the new activity using an intent (request to Android system)
+                // MainActivity.this refers to current instance of class while EditActivity.class refers to the class of the activity
+                Intent i = new Intent(MainActivity.this, EditActivity.class);
+                // Pass the data being edited
+                i.putExtra(KEY_ITEM_TEXT, items.get(position));
+                i.putExtra(KEY_ITEM_POSITION, position);
+                // Display the activity (request code uniquely identifies request for another activity)
+                startActivityForResult(i, EDIT_TEXT_CODE);
+            }
+        };
         // Construct adapter and pass items in
-        itemsAdapter = new ItemsAdapter(items, onLongClickListener);
+        itemsAdapter = new ItemsAdapter(items, onLongClickListener, onClickListener);
         rvItems.setAdapter(itemsAdapter);
         // Place UI components vertically by default
         rvItems.setLayoutManager(new LinearLayoutManager(this));
@@ -74,6 +98,29 @@ public class MainActivity extends AppCompatActivity {
                 saveItems();
             }
         });
+    }
+
+    // Handle result of EditActivity by overriding
+    @SuppressLint("MissingSuperCall")
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        // Check if the actual request code matches with Edit Text Code
+        if (resultCode == RESULT_OK && requestCode == EDIT_TEXT_CODE) {
+            // Retrieve the updated text value
+            String itemText = data.getStringExtra(KEY_ITEM_TEXT);
+            // Extract the original position of the edited item from the position key
+            int position = data.getExtras().getInt(KEY_ITEM_POSITION);
+
+            // Update the model at the right position with the new item text
+            items.set(position, itemText);
+            // Notify the adapted so RecyclyView knows something changed
+            itemsAdapter.notifyItemChanged(position);
+            // Persist the changes
+            saveItems();
+            Toast.makeText(getApplicationContext(), "Item updated successfully!", Toast.LENGTH_SHORT).show();
+        } else {
+            Log.w("MainActivity", "Unknown call to onActivityResult");
+        }
     }
 
     // Persistence related methods are private because only called within this file
